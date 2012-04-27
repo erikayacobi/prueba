@@ -1,0 +1,174 @@
+<?php
+
+/**
+ * @file masquerade.module
+ *
+ * The masquerade module allows administrators to masquerade as other user.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+/*
+function masquerade_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#masquerade':
+      return t('<p>The masquerade module adds a link on a user\'s profile page that allows permitted users to masquerade as that user. Upon masquerading, a link to "switch back" to the original user will appear in the menu. While masquerading, the option to masquerade as another user will not appear. All masquerading transactions are logged, and $user->masquerading will be set; this could be displayed via theme.</p><p>In the masquerade settings a list of roles are presented; any checked role is considered an "administrator" and requires the second level "masquerade as admin" permission to masquerade as. User #1 is automatically considered an administrator, regardless of roles.</p>');
+    case 'admin/settings/masquerade':
+      return t('Only the users with <strong>masquerade as admin</strong> permission, will be able to masquerade as the users who belong to the roles selected below. User #1 is automatically considered an administrator, regardless of roles.');
+  }
+}
+*/
+/**
+ * Implementation of hook_perm().
+ *
+ * @return array
+ */
+function prueba_perm() {
+  return array('permiso insertar preferencia', 'permiso consultar preferencia',
+  				 'permiso administrar modulo prueba');
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function prueba_init() {
+ 
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function prueba_menu() {
+  $items = array();
+  
+  $items['prueba'] = array(
+    'title' => 'Menu general',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('prueba_link'),
+    'access callback' => TRUE, 
+    'type' => MENU_NORMAL_ITEM,
+  );
+ $items['prueba/prueba2'] = array(
+  	'title' => 'Insertar datos en bbdd',
+ 	'page callback' => 'drupal_get_form',
+    'page arguments' => array('prueba_enviar'),
+ 	//'access callback' => TRUE, 	
+ 	'access callback' => 'user_access',
+  	'access arguments' => array('permiso insertar preferencia'),
+  	'type' => MENU_NORMAL_ITEM,
+ );
+ $items['prueba/prueba3'] = array(
+ 	'title' => 'Mostrar entradas guardadas en bbdd',
+ 	'page callback' => 'drupal_get_form',
+ 	'page arguments' => array('prueba_mostrar'),
+ 	'access callback' =>'user_access',
+    'access arguments' => array('permiso consultar preferencia'),
+   // 'access callback' => TRUE,
+ 	'type' => MENU_NORMAL_ITEM,
+ );
+ $items['config'] = array(
+ 	'title' => 'Pantalla configuración administración',
+ 	'page callback' => 'drupal_get_form',
+ 	'page arguments' => array('prueba_admin_settings'),
+ 	'access callback' => 'user_access',
+ 	'access arguments' => array('permiso administrar modulo prueba'),
+ 	'type'=> MENU_NORMAL_ITEM,
+ );
+  return $items;
+}
+
+function prueba_link(){
+	$form['milink'] = array(
+		'#prefix' => '<br>',
+		'#value' => '- '.l(t('Insertar datos en bbdd'), 'prueba/prueba2') ,
+ 		'#suffix'=> '</br>',
+	);
+	$form['misegundolink'] = array(
+		'#prefix' => '<br>',
+		'#value' => '- '.l(t('Mostrar datos de bbdd'),'prueba/prueba3'),
+		'#suffix'=> '</br>',
+	);
+	
+	return $form;
+
+}
+function prueba_admin_settings(){
+     $form['prueba_size'] = array(
+     	'#type' => 'textfield',
+     	'#title' => t('Longitud campo: '),
+     	'#description' => t('Se establecerá una longitud de campo máximo'),
+     	'#default_value' => variable_get('prueba_size',1),
+     	'#size' => 3,
+     );	
+     return system_settings_form($form);
+}
+
+function prueba_mostrar(){
+	// select para mostrar todos los datos de la tabla.
+	$result=db_query("SELECT * FROM {tablaprueba}");
+	$form = array();
+	$i=0;
+	while($data = db_fetch_object($result)){
+			
+		$form['id-'.$i]= array(
+			'#title' => t('Id'),
+			'#prefix' => '<br>'.t('Id: '),
+			'#type' => 'markup',
+			'#value' => $data->id,
+			'#suffix'=> '</br>',
+		);
+		$form['nombre-'.$i]=array(
+			'#title' => t('Nombre'),
+			'#prefix' => '<br>'.t('Nombre: '),
+			'#type' => 'markup',
+			'#value' => $data->nombre,
+			'#suffix'=> '</br>',
+		);
+		$form['color-'.$i]=array(
+			'#title' => t('Color'),
+			'#prefix' => '<br>'.t('Color: '),
+			'#type' => 'markup',
+			'#value' => $data->color,
+			'#suffix'=> '</br>',
+		);
+		/**print $data->id;
+		print $data->nombre;
+	    print $data->color;
+	*/
+		$i=$i+1;		
+	}
+
+	return $form;
+} 
+function prueba_enviar(){
+	
+	
+	$form['nombre']= array(
+		'#title' => t('Tu nombre'),
+		'#type' => 'textfield',
+		'#required' => TRUE,
+		'#description' => t('Escribe tu nombre'),	
+	);
+	$form['color'] = array(
+		'#title' => t('Color'),
+		'#required' => TRUE,
+		'#type' => 'textfield',
+		'#description' => t('Escribe un color'),
+	);
+	
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Enviar'),
+	);
+	
+	return $form;
+}
+
+function prueba_enviar_submit($form, &$form_state){
+	//$form_state ['redirect'] = 'node/'.$form_state['values']['nombre'];
+	$nombre = $form_state['values']['nombre'];
+	$color = $form_state['values']['color'];
+	db_query("INSERT INTO {tablaprueba} (nombre,color) VALUES ('%s','%s')", $nombre, $color );
+}

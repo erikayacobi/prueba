@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+/*
+function mitest_schema() {
+  // This should always point to our 'current' schema. This makes it relatively easy
+  // to keep a record of schema as we make changes to it.
+  return panels_schema_3();
+}
+*/
+function prueba_install() {
+  drupal_install_schema('prueba');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function prueba_uninstall() {
+  drupal_uninstall_schema('prueba');
+}
+
+function prueba_schema(){
+	$schema['tablaprueba'] = array(
+		'description' => t('Stores information'),
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => t('Primary Key'),
+			),
+			'nombre' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE, 
+				'description' => t('Campo nombre'),
+			),
+			'color' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'description' => t('Campo color'),
+			),
+		), //fields
+		'primary key' => array('id'),
+			
+	);
+	return $schema;
+}

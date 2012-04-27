@@ -1,0 +1,4 @@
+name = prueba
+description = Este es un modulo de prueba
+core = 6.x
+package = "Mis Modulos"
